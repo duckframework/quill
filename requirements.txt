@@ -1,0 +1,4 @@
+duckframework
+anthropic
+google-generativeai
+groq
