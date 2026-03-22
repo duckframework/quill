@@ -12,8 +12,8 @@ Quill is an AI-powered design tool. You type a prompt like:
 
 > *"A neon cyberpunk music festival poster for Lagos, Nigeria"*
 
-Quill sends that prompt to Claude, which generates a complete HTML design.
-You watch the design build itself live in the preview panel as Claude streams
+Quill sends that prompt to Claude or the chose model, which generates a complete HTML design.
+You watch the design build itself live in the preview panel as Claude/Groq/Gemini streams
 the response token by token. Then you resize it and download it as a PNG.
 
 ---
@@ -21,21 +21,27 @@ the response token by token. Then you resize it and download it as a PNG.
 ## Installation
 
 ### Step 1 — Install dependencies
+
+Clone the repo and navigate inside the project, then run the following command:
+
 ```bash
-pip install duckframework anthropic
+pip install -r requirements.txt
 ```
 
-### Step 2 — Add your API key
+### Step 2 — Add your API keys
+
 Open `web/settings.py` and replace `"your-api-key-here"` with your key.
 Or use an environment variable:
+
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
+export GEMINI_API_KEY="..."
 ```
 
 ### Step 3 — Run
+
 ```bash
-cd quill
-duck runserver
+python web/main.py
 ```
 Open `http://localhost:8000`
 
@@ -49,7 +55,7 @@ Open `http://localhost:8000`
 | `web/ui/components/prompt_form.py` | Prompt input + generate button |
 | `web/ui/components/preview_panel.py` | iframe preview + resize + download |
 | `web/ui/pages/home.py` | Full page layout |
-| `web/settings.py` | API key, model, Duck config |
+| `web/settings.py` | API keys, model, Duck config |
 
 ---
 

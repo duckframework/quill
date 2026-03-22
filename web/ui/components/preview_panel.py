@@ -101,15 +101,41 @@ function quillResizePreview(w, h) {
 }
 
 function quillUpdateWidth(val) {
-    document.getElementById('quill-w-display').innerText = val + 'px';
-    var h = document.getElementById('quill-h-slider').value;
-    quillResizePreview(parseInt(val), parseInt(h));
+    // Slider moved — sync the number input and resize
+    var n = parseInt(val);
+    var input = document.getElementById('quill-w-input');
+    if (input && parseInt(input.value) !== n) input.value = n;
+    var h = parseInt(document.getElementById('quill-h-slider').value);
+    quillResizePreview(n, h);
 }
 
 function quillUpdateHeight(val) {
-    document.getElementById('quill-h-display').innerText = val + 'px';
-    var w = document.getElementById('quill-w-slider').value;
-    quillResizePreview(parseInt(w), parseInt(val));
+    // Slider moved — sync the number input and resize
+    var n = parseInt(val);
+    var input = document.getElementById('quill-h-input');
+    if (input && parseInt(input.value) !== n) input.value = n;
+    var w = parseInt(document.getElementById('quill-w-slider').value);
+    quillResizePreview(w, n);
+}
+
+function quillInputWidth(val) {
+    // Number input changed — clamp, sync slider, and resize
+    var slider = document.getElementById('quill-w-slider');
+    if (!slider) return;
+    var n = Math.min(parseInt(slider.max), Math.max(parseInt(slider.min), parseInt(val) || parseInt(slider.min)));
+    slider.value = n;
+    var h = parseInt(document.getElementById('quill-h-slider').value);
+    quillResizePreview(n, h);
+}
+
+function quillInputHeight(val) {
+    // Number input changed — clamp, sync slider, and resize
+    var slider = document.getElementById('quill-h-slider');
+    if (!slider) return;
+    var n = Math.min(parseInt(slider.max), Math.max(parseInt(slider.min), parseInt(val) || parseInt(slider.min)));
+    slider.value = n;
+    var w = parseInt(document.getElementById('quill-w-slider').value);
+    quillResizePreview(w, n);
 }
 
 // Code editor — apply changes to preview
@@ -141,8 +167,8 @@ function quillDownload() {
 
     // Read the intended design dimensions from the sliders, not the
     // rendered iframe size — this ensures full quality on any device
-    var designW = parseInt(document.getElementById('quill-w-slider').value) || 800;
-    var designH = parseInt(document.getElementById('quill-h-slider').value) || 600;
+    var designW = parseInt(document.getElementById('quill-w-input') ? document.getElementById('quill-w-input').value : document.getElementById('quill-w-slider').value) || 800;
+    var designH = parseInt(document.getElementById('quill-h-input') ? document.getElementById('quill-h-input').value : document.getElementById('quill-h-slider').value) || 600;
 
     // Snapshot current iframe size so we can restore it after capture
     var prevWidth  = frame.style.width;
@@ -208,8 +234,8 @@ function quillDownload() {
 function quillInitDimensions() {
     var wSlider = document.getElementById('quill-w-slider');
     var hSlider = document.getElementById('quill-h-slider');
-    var wLabel  = document.getElementById('quill-w-display');
-    var hLabel  = document.getElementById('quill-h-display');
+    var wInput  = document.getElementById('quill-w-input');
+    var hInput  = document.getElementById('quill-h-input');
     var frame   = document.getElementById('quill-preview-frame');
     if (!wSlider || !hSlider || !frame) return;
 
@@ -232,8 +258,8 @@ function quillInitDimensions() {
     // Apply to sliders, labels, and iframe
     wSlider.value    = initW;
     hSlider.value    = initH;
-    wLabel.innerText = initW + 'px';
-    hLabel.innerText = initH + 'px';
+    if (wInput) wInput.value = initW;
+    if (hInput) hInput.value = initH;
     frame.setAttribute('style', 'width:' + initW + 'px;height:' + initH + 'px;border:none;background:#fff;display:block;');
 
     // Sync wrap height
@@ -272,8 +298,8 @@ function quillApplyDesignDimensions(designType) {
     var size    = DESIGN_SIZES[designType] || DESIGN_SIZES['custom'];
     var wSlider = document.getElementById('quill-w-slider');
     var hSlider = document.getElementById('quill-h-slider');
-    var wLabel  = document.getElementById('quill-w-display');
-    var hLabel  = document.getElementById('quill-h-display');
+    var wInput  = document.getElementById('quill-w-input');
+    var hInput  = document.getElementById('quill-h-input');
     var frame   = document.getElementById('quill-preview-frame');
     if (!wSlider || !hSlider || !frame) return;
 
@@ -283,8 +309,8 @@ function quillApplyDesignDimensions(designType) {
     // Apply everywhere
     wSlider.value      = w;
     hSlider.value      = h;
-    wLabel.innerText   = w + 'px';
-    hLabel.innerText   = h + 'px';
+    if (wInput) wInput.value = w;
+    if (hInput) hInput.value = h;
     frame.setAttribute('style', 'width:' + w + 'px;height:' + h + 'px;border:none;background:#fff;display:block;');
 
     var wrap = document.getElementById('quill-preview-wrap');
@@ -935,18 +961,20 @@ class PreviewPanel(FlexContainer):
         self.resize_row.add_child(self.build_slider_group(
             label="Width",
             slider_id="quill-w-slider",
-            display_id="quill-w-display",
+            input_id="quill-w-input",
             default=800, min_val=320, max_val=1920,
-            on_input="quillUpdateWidth(this.value)",
+            on_slider="quillUpdateWidth(this.value)",
+            on_input="quillInputWidth(this.value)",
         ))
 
         # Height slider — initial value overridden by quillInitDimensions on load
         self.resize_row.add_child(self.build_slider_group(
             label="Height",
             slider_id="quill-h-slider",
-            display_id="quill-h-display",
+            input_id="quill-h-input",
             default=600, min_val=200, max_val=1920,
-            on_input="quillUpdateHeight(this.value)",
+            on_slider="quillUpdateHeight(this.value)",
+            on_input="quillInputHeight(this.value)",
         ))
 
         # Generating badge
@@ -970,26 +998,31 @@ class PreviewPanel(FlexContainer):
         self,
         label,
         slider_id,
-        display_id,
+        input_id,
         default,
         min_val,
         max_val,
+        on_slider,
         on_input,
     ) -> FlexContainer:
         """
-        Builds a labelled range slider with a current value display.
+        Builds a labelled range slider with a synced number input.
+
+        The slider and number input are two-way synced — moving the slider
+        updates the input, and typing in the input updates the slider.
 
         Args:
-            label:      Display label (e.g. "Width").
-            slider_id:  HTML id for the range input.
-            display_id: HTML id for the value label.
-            default:    Initial value.
-            min_val:    Minimum range value.
-            max_val:    Maximum range value.
-            on_input:   JS expression called on input change.
+            label:     Display label (e.g. "Width").
+            slider_id: HTML id for the range input.
+            input_id:  HTML id for the number input.
+            default:   Initial value.
+            min_val:   Minimum range value.
+            max_val:   Maximum range value.
+            on_slider: JS called when the slider changes.
+            on_input:  JS called when the number input changes.
 
         Returns:
-            A FlexContainer containing the label, slider, and display.
+            A FlexContainer containing the label, slider, and number input.
         """
         group = FlexContainer(
             style={
@@ -1013,7 +1046,7 @@ class PreviewPanel(FlexContainer):
             },
         )
 
-        # Range slider
+        # Range slider — drag for coarse adjustment
         slider = to_component("", "input", no_closing_tag=True)
         slider.id = slider_id
         slider.props.update({
@@ -1021,23 +1054,35 @@ class PreviewPanel(FlexContainer):
             "min": str(min_val),
             "max": str(max_val),
             "value": str(default),
-            "oninput": on_input,
+            "oninput": on_slider,
             "style": "flex:1;accent-color:#6366f1;cursor:pointer;",
         })
 
-        # Current value display
-        display = Label(
-            text=f"{default}px",
-            style={
-                "font-size": "0.75rem",
-                "color": "#fff",
-                "min-width": "48px",
-                "font-family": "monospace",
-            },
-        )
-        display.id = display_id
+        # Number input — type exact value for precise adjustment
+        num = to_component("", "input", no_closing_tag=True)
+        num.id = input_id
+        num.props.update({
+            "type": "number",
+            "min": str(min_val),
+            "max": str(max_val),
+            "value": str(default),
+            "oninput": on_input,
+            "onblur": on_input.replace("this.value", "this.value"),
+        })
+        num.style.update({
+            "width": "62px",
+            "padding": "4px 6px",
+            "background": "rgba(255,255,255,0.05)",
+            "border": "1px solid rgba(255,255,255,0.1)",
+            "border-radius": "6px",
+            "color": "#fff",
+            "font-size": "0.75rem",
+            "font-family": "monospace",
+            "text-align": "center",
+            "outline": "none",
+        })
 
-        group.add_children([lbl, slider, display])
+        group.add_children([lbl, slider, num])
         return group
 
     # Download bar
