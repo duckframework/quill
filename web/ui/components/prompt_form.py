@@ -31,6 +31,7 @@ DESIGN_TYPES = [
     ("social",       "📱  Social Media Card"),
     ("certificate",  "🏆  Certificate"),
     ("custom",       "✦   Custom"),
+    ("opengraph",    "🌐  Open Graph Image"),
 ]
 
 # One representative prompt per design type used in demo mode.
@@ -41,6 +42,7 @@ DEMO_PROMPTS = {
     "social":      "LinkedIn announcement — just launched my open source project",
     "certificate": "Certificate of completion for a Python web development course",
     "custom":      "A minimal motivational quote card",
+    "opengraph":   "Open Graph image for a Python web framework called Duck Framework",
 }
 
 EXAMPLE_PROMPTS = [
@@ -49,6 +51,7 @@ EXAMPLE_PROMPTS = [
     "LinkedIn announcement card — new job",
     "Certificate of completion for Python course",
     "A minimal motivational quote card",
+    "Open Graph image for my new SaaS product launch",
 ]
 
 SELECT_STYLE = {
@@ -703,3 +706,314 @@ class PromptForm(Form):
 
             # Return ForceUpdate to sync current changes on submit button to the client.
             return ForceUpdate(self.submit_btn, ["all"])
+
+
+# User agents available in import mode
+USER_AGENTS = [
+    ("desktop_chrome",   "Desktop — Chrome",        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+    ("desktop_firefox",  "Desktop — Firefox",       "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0"),
+    ("desktop_safari",   "Desktop — Safari",        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15"),
+    ("iphone",           "Mobile — iPhone Safari",  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1"),
+    ("android",          "Mobile — Android Chrome", "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.82 Mobile Safari/537.36"),
+    ("googlebot",        "Googlebot",               "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"),
+    ("custom",           "Custom…",                 ""),
+]
+
+# JS to show/hide the custom UA input
+IMPORT_UA_SCRIPT = """
+function quillToggleCustomUa() {
+    var sel  = document.getElementById('quill-ua-select');
+    var wrap = document.getElementById('quill-custom-ua-wrap');
+    if (!wrap) return;
+    wrap.style.display = (sel && sel.value === 'custom') ? 'flex' : 'none';
+}
+"""
+
+from duck.html.components.script import Script
+from duck.html.components.input import Input
+
+
+class ImportForm(Form):
+    """
+    Import mode form — fetches an external URL server-side with a chosen
+    user agent and streams the raw HTML into the preview panel.
+
+    The user can pick from preset user agents (desktop, mobile, bot)
+    or supply a fully custom UA string. The fetched page is streamed
+    into the preview exactly like a generated design, so all the usual
+    controls (resize sliders, download, code editor) work as normal.
+    """
+    def on_create(self):
+        super().on_create()
+        self.style.update({
+            "flex-direction": "column",
+            "gap": "20px",
+            "width": "100%",
+            "flex-shrink": "0",
+        })
+        self.build_header()
+        self.build_url_input()
+        self.build_ua_selector()
+        self.build_submit()
+        self.bind_form()
+        self.add_child(Script(inner_html=IMPORT_UA_SCRIPT))
+
+    def build_header(self):
+        """
+        Header explaining what import mode does.
+        """
+        title = Heading(
+            "h2",
+            text="Import a Page",
+            style={
+                "font-size": "1.8rem",
+                "font-weight": "800",
+                "letter-spacing": "-0.04em",
+                "background": "linear-gradient(135deg, #fff 40%, rgba(255,255,255,0.4))",
+                "-webkit-background-clip": "text",
+                "-webkit-text-fill-color": "transparent",
+                "background-clip": "text",
+                "margin": "0",
+            },
+        )
+        sub = Paragraph(
+            inner_html="Fetch any URL and preview it as a downloadable design.",
+            style={"font-size": "0.82rem", "color": "rgba(255,255,255,0.35)", "margin": "4px 0 0"},
+        )
+        header = FlexContainer(style={"flex-direction": "column", "gap": "4px"})
+        header.add_children([title, sub])
+        self.add_child(header)
+
+    def build_url_input(self):
+        """
+        URL input field.
+        """
+        lbl = Label(text="Page URL", style=LABEL_STYLE)
+        self.url_input = Input(
+            type="url",
+            placeholder="https://example.com",
+            style={
+                "background": "rgba(255,255,255,0.05)",
+                "border": "1px solid rgba(255,255,255,0.1)",
+                "color": "#fff",
+                "border-radius": "10px",
+                "padding": "11px 14px",
+                "font-size": "0.88rem",
+                "width": "100%",
+                "outline": "none",
+                "font-family": "inherit",
+            },
+        )
+        self.url_input.props["name"] = "import_url"
+        self.url_input.props["id"]   = "quill-import-url"
+
+        group = FlexContainer(style={"flex-direction": "column", "gap": "6px"})
+        group.add_children([lbl, self.url_input])
+        self.add_child(group)
+
+    def build_ua_selector(self):
+        """
+        User agent selector — preset devices plus a custom text input.
+        """
+        lbl = Label(text="View as device", style=LABEL_STYLE)
+
+        self.ua_select = Select(style=SELECT_STYLE)
+        self.ua_select.props["name"]     = "user_agent_key"
+        self.ua_select.props["id"]       = "quill-ua-select"
+        self.ua_select.props["onchange"] = "quillToggleCustomUa()"
+
+        for key, display, _ in USER_AGENTS:
+            opt = Option(text=display, props={"value": key})
+            if key == "desktop_chrome":
+                opt.props["selected"] = "selected"
+            self.ua_select.add_child(opt)
+
+        # Custom UA text input — hidden unless "Custom…" is selected
+        custom_wrap = FlexContainer(
+            id="quill-custom-ua-wrap",
+            style={"display": "none", "flex-direction": "column", "gap": "4px"},
+        )
+        custom_lbl = Label(
+            text="Custom user agent string",
+            style={**LABEL_STYLE, "margin-top": "4px"},
+        )
+        self.custom_ua_input = Input(
+            type="text",
+            placeholder="Mozilla/5.0 ...",
+            style={
+                "background": "rgba(255,255,255,0.05)",
+                "border": "1px solid rgba(255,255,255,0.1)",
+                "color": "#fff",
+                "border-radius": "10px",
+                "padding": "10px 14px",
+                "font-size": "0.82rem",
+                "width": "100%",
+                "outline": "none",
+                "font-family": "monospace",
+            },
+        )
+        self.custom_ua_input.props["name"] = "custom_user_agent"
+        custom_wrap.add_children([custom_lbl, self.custom_ua_input])
+
+        group = FlexContainer(style={"flex-direction": "column", "gap": "6px"})
+        group.add_children([lbl, self.ua_select, custom_wrap])
+        self.add_child(group)
+
+    def build_submit(self):
+        """
+        Status strip and fetch button.
+        """
+        # Status strip
+        status_strip = FlexContainer(
+            id="quill-import-status-strip",
+            style={
+                "display": "none",
+                "flex-direction": "row",
+                "align-items": "center",
+                "gap": "8px",
+                "padding": "9px 14px",
+                "border-radius": "8px",
+                "font-size": "0.8rem",
+            },
+        )
+        s_icon = to_component("", "span")
+        s_icon.id = "quill-import-status-icon"
+        s_text = to_component("", "span")
+        s_text.id = "quill-import-status-text"
+        s_text.style["flex"] = "1"
+        status_strip.add_children([s_icon, s_text])
+        self.add_child(status_strip)
+
+        # Fetch button
+        self.import_btn = RaisedButton(
+            id="quill-import-btn",
+            text="⤓  Fetch & Preview",
+            bg_color="#6366f1",
+            color="#fff",
+            props={"type": "submit"},
+            style={
+                "width": "100%", "padding": "13px", "border-radius": "10px",
+                "font-size": "0.95rem", "font-weight": "700",
+                "cursor": "pointer", "letter-spacing": "0.02em",
+            },
+        )
+        self.add_child(self.import_btn)
+
+    def bind_form(self):
+        self.bind(
+            "submit",
+            self.handle_import,
+            update_self=False,
+        )
+
+    async def handle_import(self, source, event, form_inputs, ws):
+        """
+        Fetches the given URL server-side using the selected user agent
+        and streams the HTML into the preview panel.
+        """
+        import urllib.request
+        import urllib.error
+
+        raw_url   = (form_inputs.get("import_url", "") or "").strip()
+        ua_key    = (form_inputs.get("user_agent_key", "desktop_chrome") or "desktop_chrome").strip()
+        custom_ua = (form_inputs.get("custom_user_agent", "") or "").strip()
+
+        if not raw_url:
+            await ws.execute_js(
+                "quillShowImportStatus('error', '&#9888; Please enter a URL to fetch.');",
+                wait_for_result=False,
+            )
+            return
+
+        if not raw_url.startswith(("http://", "https://")):
+            raw_url = "https://" + raw_url
+
+        # Resolve user agent string
+        if ua_key == "custom":
+            user_agent = custom_ua or "Mozilla/5.0"
+        else:
+            user_agent = next(
+                (ua for key, _, ua in USER_AGENTS if key == ua_key),
+                USER_AGENTS[0][2],
+            )
+
+        # Show spinner and disable button
+        await ws.execute_js(
+            f"quillStartStream('{ua_key if ua_key != 'custom' else 'ua_custom'}');"
+            "quillShowImportStatus('loading', '&#9711; Fetching page...');"
+            "document.getElementById('quill-import-btn').disabled = true;",
+            wait_for_result=True,
+        )
+
+        try:
+            req = urllib.request.Request(
+                raw_url,
+                headers={
+                    "User-Agent": user_agent,
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "Accept-Language": "en-US,en;q=0.5",
+                    "Accept-Encoding": "identity",
+                },
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                # Cap at 1MB to avoid huge pages
+                html_bytes = resp.read(1024 * 1024)
+                charset = "utf-8"
+                ct = resp.headers.get("Content-Type", "")
+                if "charset=" in ct:
+                    charset = ct.split("charset=")[-1].split(";")[0].strip()
+                html = html_bytes.decode(charset, errors="replace")
+
+        except urllib.error.HTTPError as e:
+            await ws.execute_js(
+                f"quillShowImportStatus('error', '&#9888; HTTP {e.code}: {e.reason}. The site may block external requests.');"
+                "quillShowError('Fetch Failed', 'The server returned an error. The site may block external fetches.');"
+                "document.getElementById('quill-import-btn').disabled = false;",
+                wait_for_result=False,
+            )
+            return
+
+        except urllib.error.URLError as e:
+            await ws.execute_js(
+                f"quillShowImportStatus('error', '&#9888; Could not reach that URL. Check the address and try again.');"
+                "quillShowError('Fetch Failed', 'Could not reach that URL. Check the address and try again.');"
+                "document.getElementById('quill-import-btn').disabled = false;",
+                wait_for_result=False,
+            )
+            return
+
+        except Exception:
+            await ws.execute_js(
+                "quillShowImportStatus('error', '&#9888; Fetch failed. The site may not allow external access.');"
+                "quillShowError('Fetch Failed', 'Something went wrong. The site may block external fetches.');"
+                "document.getElementById('quill-import-btn').disabled = false;",
+                wait_for_result=False,
+            )
+            return
+
+        # Stream HTML into preview in chunks
+        chunk_size = 8192
+        html_buffer = ""
+        for i in range(0, len(html), chunk_size):
+            html_buffer += html[i:i + chunk_size]
+            safe = (
+                html_buffer
+                .replace("\\", "\\\\")
+                .replace("`", "\\`")
+                .replace("$", "\\$")
+            )
+            await ws.execute_js(f"quillSetPreview(`{safe}`);", wait_for_result=False)
+
+        # Finalise
+        safe_final = (
+            html_buffer
+            .replace("\\", "\\\\")
+            .replace("`", "\\`")
+            .replace("$", "\\$")
+        )
+        await ws.execute_js(f"quillFinalise(`{safe_final}`);")
+        await ws.execute_js(
+            "quillShowImportStatus('success', '&#10003; Page fetched successfully. Resize and download below.');"
+            "document.getElementById('quill-import-btn').disabled = false;",
+            wait_for_result=False,
+        )

@@ -278,20 +278,40 @@ if (document.readyState === 'loading') {
 // These are fixed pixel sizes that match the natural format of each type.
 // On small devices they're scaled down proportionally to fit the screen.
 var DESIGN_SIZES = {
-    poster:      { w: 600,  h: 900  },   // A3-ish portrait
-    code:        { w: 800,  h: 500  },   // wide code card, comfortable reading height
-    social:      { w: 600,  h: 600  },   // square social card
-    certificate: { w: 900,  h: 640  },   // landscape document
-    custom:      { w: 800,  h: 600  },   // general default
+    // AI design types
+    poster:           { w: 600,  h: 900  },
+    code:             { w: 800,  h: 500  },
+    social:           { w: 600,  h: 600  },
+    certificate:      { w: 900,  h: 640  },
+    opengraph:        { w: 1200, h: 630  },
+    custom:           { w: 800,  h: 600  },
+    // Import mode — UA-based viewport sizes
+    desktop_chrome:   { w: 1280, h: 800  },
+    desktop_firefox:  { w: 1280, h: 800  },
+    desktop_safari:   { w: 1280, h: 900  },
+    iphone:           { w: 390,  h: 844  },
+    android:          { w: 412,  h: 915  },
+    googlebot:        { w: 1280, h: 800  },
+    ua_custom:        { w: 1280, h: 800  },
 };
 
 // Hint messages shown after generation so the user knows they can resize
 var DESIGN_HINTS = {
-    poster:      '↔ Poster set to 600×900. Drag the sliders to resize to any size.',
-    code:        '↔ Code card set to 800×500. Widen for longer lines.',
-    social:      '↔ Social card set to 600×600 square. Resize to match your platform.',
-    certificate: '↔ Certificate set to 900×640. Scale up for print quality.',
-    custom:      '↔ Design ready. Use the sliders to adjust width and height.',
+    // AI design types
+    poster:           '↔ Poster set to 600×900. Drag the sliders to resize.',
+    code:             '↔ Code card set to 800×500. Widen for longer lines.',
+    social:           '↔ Social card set to 600×600. Resize to match your platform.',
+    certificate:      '↔ Certificate set to 900×640. Scale up for print quality.',
+    opengraph:        '↔ OG image set to 1200×630 — standard social share size.',
+    custom:           '↔ Design ready. Use the sliders to adjust width and height.',
+    // Import mode UA hints
+    desktop_chrome:   '↔ Set to 1280×800 — standard desktop Chrome viewport.',
+    desktop_firefox:  '↔ Set to 1280×800 — standard desktop Firefox viewport.',
+    desktop_safari:   '↔ Set to 1280×900 — standard desktop Safari viewport.',
+    iphone:           '↔ Set to 390×844 — iPhone 14 viewport. Scroll to see full page.',
+    android:          '↔ Set to 412×915 — Pixel 8 viewport. Scroll to see full page.',
+    googlebot:        '↔ Set to 1280×800 — Googlebot desktop viewport.',
+    ua_custom:        '↔ Custom UA — default 1280×800. Adjust as needed.',
 };
 
 function quillApplyDesignDimensions(designType) {

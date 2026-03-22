@@ -31,6 +31,7 @@ SYSTEM_PROMPTS = {
     "social":      f"You are a social media designer creating scroll-stopping cards as HTML. Bold, modern, optimised for sharing. Think Twitter/LinkedIn cards, quote graphics, announcement posts.\n{BASE_RULES}",
     "certificate": f"You are a formal document designer creating elegant certificates as HTML. Use classic serif typography, decorative borders, gold/cream/navy palettes, official seals, and a sense of prestige.\n{BASE_RULES}",
     "custom":      f"You are a world-class creative designer. Interpret the prompt freely and produce the most visually impressive HTML design possible.\n{BASE_RULES}",
+    "opengraph":   f"You are an expert Open Graph image designer. Create stunning 1200x630px HTML cards for social media sharing. The design must be exactly 1200px wide and 630px tall, with no scrollbars. Use bold typography, strong visual hierarchy, a compelling headline, a short tagline, a domain/brand name, and an accent colour that complements the content. Avoid clutter — every element must breathe. Think Twitter cards, LinkedIn posts, Discord embeds.\n{BASE_RULES}",
 }
 
 # Pre-built demo designs streamed chunk by chunk when dummy mode is on
@@ -191,7 +192,91 @@ h1{font-family:'Playfair Display',serif;font-size:2.4rem;color:#2d1f00;margin-bo
 </div>
 </body></html>""",
 
-    "custom": """<!DOCTYPE html><html><head><meta charset="UTF-8">
+    "opengraph": """<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1200px;height:630px;overflow:hidden}
+body{background:#0d0d14;font-family:'Syne',sans-serif;position:relative;}
+body::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:48px 48px;}
+.glow{position:absolute;top:-100px;left:-80px;width:500px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,0.12) 0%,transparent 65%);}
+.glow2{position:absolute;bottom:-100px;right:-60px;width:420px;height:420px;background:radial-gradient(ellipse,rgba(139,92,246,0.08) 0%,transparent 65%);}
+.wrap{position:relative;z-index:1;width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:52px 64px 48px;}
+.top{display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;font-family:'DM Mono',monospace;font-size:1rem;color:#f0f0f0;}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:#6366f1;}
+.badge{font-family:'DM Mono',monospace;font-size:0.7rem;color:#818cf8;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.22);padding:6px 16px;border-radius:99px;letter-spacing:.12em;text-transform:uppercase;}
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;}
+.kicker{font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:.18em;text-transform:uppercase;color:#6366f1;display:flex;align-items:center;gap:10px;}
+.kicker::before{content:'';display:inline-block;width:24px;height:1px;background:#6366f1;}
+h1{font-size:4.2rem;font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:#fff;}
+h1 span{background:linear-gradient(90deg,#818cf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.desc{font-size:1.05rem;color:rgba(240,240,240,0.4);max-width:560px;line-height:1.6;}
+.bottom{display:flex;align-items:center;justify-content:space-between;}
+.url{font-family:'DM Mono',monospace;font-size:0.78rem;color:rgba(240,240,240,0.3);}
+.powered{font-family:'DM Mono',monospace;font-size:0.7rem;color:rgba(240,240,240,0.22);letter-spacing:.05em;text-align:right;line-height:1.6;}
+.powered strong{color:rgba(240,240,240,0.5);}
+</style></head><body>
+<div class="glow"></div><div class="glow2"></div>
+<div class="wrap">
+  <div class="top">
+    <div class="logo"><div class="logo-dot"></div>quill/</div>
+    <div class="badge">✦ OG Image Demo</div>
+  </div>
+  <div class="hero">
+    <div class="kicker">Open Graph Image</div>
+    <h1>Share anything.<br><span>Look great.</span></h1>
+    <div class="desc">Generate stunning 1200×630 Open Graph images for any website, product, or post. Perfect for Twitter, LinkedIn, and Discord embeds.</div>
+  </div>
+  <div class="bottom">
+    <div class="url">quill.duckframework.xyz</div>
+    <div class="powered"><strong>Duck Framework</strong><br>Pure Python · No JavaScript</div>
+  </div>
+</div>
+</body></html>""",
+    "opengraph": """<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1200px;height:630px;overflow:hidden}
+body{background:#0d0d14;font-family:'Syne',sans-serif;position:relative;}
+body::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:48px 48px;}
+.glow{position:absolute;top:-100px;left:-80px;width:500px;height:500px;background:radial-gradient(ellipse,rgba(99,102,241,0.12) 0%,transparent 65%);}
+.glow2{position:absolute;bottom:-100px;right:-60px;width:420px;height:420px;background:radial-gradient(ellipse,rgba(139,92,246,0.08) 0%,transparent 65%);}
+.wrap{position:relative;z-index:1;width:100%;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:52px 64px 48px;}
+.top{display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;font-family:'DM Mono',monospace;font-size:1rem;color:#f0f0f0;}
+.logo-dot{width:9px;height:9px;border-radius:50%;background:#6366f1;}
+.badge{font-family:'DM Mono',monospace;font-size:0.7rem;color:#818cf8;background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.22);padding:6px 16px;border-radius:99px;letter-spacing:.12em;text-transform:uppercase;}
+.hero{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;}
+.kicker{font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:.18em;text-transform:uppercase;color:#6366f1;display:flex;align-items:center;gap:10px;}
+.kicker::before{content:'';display:inline-block;width:24px;height:1px;background:#6366f1;}
+h1{font-size:4.2rem;font-weight:800;line-height:1.0;letter-spacing:-0.03em;color:#fff;}
+h1 span{background:linear-gradient(90deg,#818cf8,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.desc{font-size:1.05rem;color:rgba(240,240,240,0.4);max-width:560px;line-height:1.6;}
+.bottom{display:flex;align-items:center;justify-content:space-between;}
+.url{font-family:'DM Mono',monospace;font-size:0.78rem;color:rgba(240,240,240,0.3);}
+.powered{font-family:'DM Mono',monospace;font-size:0.7rem;color:rgba(240,240,240,0.22);letter-spacing:.05em;text-align:right;line-height:1.6;}
+.powered strong{color:rgba(240,240,240,0.5);}
+</style></head><body>
+<div class="glow"></div><div class="glow2"></div>
+<div class="wrap">
+  <div class="top">
+    <div class="logo"><div class="logo-dot"></div>quill/</div>
+    <div class="badge">✦ OG Image Demo</div>
+  </div>
+  <div class="hero">
+    <div class="kicker">Open Graph Image</div>
+    <h1>Share anything.<br><span>Look great.</span></h1>
+    <div class="desc">Generate stunning 1200&#xd7;630 Open Graph images for any website, product, or post. Perfect for Twitter, LinkedIn, and Discord embeds.</div>
+  </div>
+  <div class="bottom">
+    <div class="url">quill.duckframework.xyz</div>
+    <div class="powered"><strong>Duck Framework</strong><br>Pure Python &middot; No JavaScript</div>
+  </div>
+</div>
+</body></html>""",
+        "custom": """<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
