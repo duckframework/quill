@@ -154,7 +154,7 @@ h2{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,3rem);font-weight:80
   <div class="sub">This card was generated in seconds by an AI model streaming HTML token by token.</div>
   <div class="footer">
     <div class="avatar">Q</div>
-    <span>quill.duckframework.xyz · AI Design Generator</span>
+    <span>quill.duckframework.com · AI Design Generator</span>
   </div>
 </div>
 </body></html>""",
@@ -187,7 +187,7 @@ h1{font-family:'Playfair Display',serif;font-size:2.4rem;color:#2d1f00;margin-bo
   <div class="footer">
     <span>March 2026</span>
     <span>Quill Demo Certificate</span>
-    <span>duckframework.xyz</span>
+    <span>duckframework.com</span>
   </div>
 </div>
 </body></html>""",
@@ -229,7 +229,7 @@ h1 span{background:linear-gradient(90deg,#818cf8,#a78bfa);-webkit-background-cli
     <div class="desc">Generate stunning 1200×630 Open Graph images for any website, product, or post. Perfect for Twitter, LinkedIn, and Discord embeds.</div>
   </div>
   <div class="bottom">
-    <div class="url">quill.duckframework.xyz</div>
+    <div class="url">quill.duckframework.com</div>
     <div class="powered"><strong>Duck Framework</strong><br>Pure Python · No JavaScript</div>
   </div>
 </div>
@@ -271,7 +271,7 @@ h1 span{background:linear-gradient(90deg,#818cf8,#a78bfa);-webkit-background-cli
     <div class="desc">Generate stunning 1200&#xd7;630 Open Graph images for any website, product, or post. Perfect for Twitter, LinkedIn, and Discord embeds.</div>
   </div>
   <div class="bottom">
-    <div class="url">quill.duckframework.xyz</div>
+    <div class="url">quill.duckframework.com</div>
     <div class="powered"><strong>Duck Framework</strong><br>Pure Python &middot; No JavaScript</div>
   </div>
 </div>

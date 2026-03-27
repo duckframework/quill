@@ -5,6 +5,7 @@ Contains a tab bar (Preview / HTML Code), an iframe that renders
 the generated design, an editable code panel, resize sliders,
 and a download button.
 """
+from duck.shortcuts import static
 from duck.html.components.container import FlexContainer, Container
 from duck.html.components.label import Label
 from duck.html.components.paragraph import Paragraph
@@ -13,26 +14,15 @@ from duck.html.components.script import Script
 
 
 # Local path to the bundled html2canvas script
-HTML_2_CANVAS_SCRIPT_URL = "/static/js/html2canvas.min.js"
+HTML_2_CANVAS_SCRIPT_URL = static("js/html2canvas.min.js")
 
 # All JS injected once — sanitizer, tab switching, preview helpers,
 # code editor, download, and streaming lifecycle functions
 PANEL_SCRIPT = """
 // HTML sanitizer
-// Strips <base> tags and rewrites relative url() references that would
-// resolve against the parent page and cause broken requests.
+// Do nothing for now.
 
 function quillSanitizeHtml(html) {
-    // Remove <base> tag
-    html = html.replace(/<base[^>]*>/gi, '');
-
-    // Rewrite relative url() references
-    html = html.replace(
-        /url\(\s*(['"]?)(?!data:|https?:|\/\/)([^'"\)\s]+)\1\s*\)/gi,
-        function(match, quote, path) {
-            return "url(" + quote + path + quote + ")";
-        }
-    );
     return html;
 }
 
@@ -189,7 +179,7 @@ function quillDownload() {
     script.src = '""" + HTML_2_CANVAS_SCRIPT_URL + r"""';
     script.onload = function() {
         frame.contentWindow.html2canvas(doc.body, {
-            useCORS:    true,
+            useCORS: true,
             allowTaint: true,
             scale:      2,        // 2x for retina quality
             width:      designW,
@@ -390,8 +380,8 @@ function quillShowError(title, message) {
     // Populate and show the error box
     var box = document.getElementById('quill-error-box');
     if (!box) return;
-    document.getElementById('quill-error-title').innerText   = title;
-    document.getElementById('quill-error-message').innerText = message;
+    document.getElementById('quill-error-title').innerHTML = title;
+    document.getElementById('quill-error-message').innerHTML = message;
     box.style.display = 'flex';
 }
 
@@ -751,7 +741,7 @@ class PreviewPanel(FlexContainer):
         self.iframe.id = "quill-preview-frame"
         self.iframe.props.update({
             "id": "quill-preview-frame",
-            "sandbox": "allow-same-origin allow-scripts",
+            "sandbox": "allow-scripts allow-same-origin",
             "style": (
                 "width:800px;height:600px;border:none;"
                 "background:#fff;display:block;"
@@ -982,7 +972,7 @@ class PreviewPanel(FlexContainer):
             label="Width",
             slider_id="quill-w-slider",
             input_id="quill-w-input",
-            default=800, min_val=320, max_val=1920,
+            default=800, min_val=5, max_val=1920,
             on_slider="quillUpdateWidth(this.value)",
             on_input="quillInputWidth(this.value)",
         ))
@@ -992,7 +982,7 @@ class PreviewPanel(FlexContainer):
             label="Height",
             slider_id="quill-h-slider",
             input_id="quill-h-input",
-            default=600, min_val=200, max_val=1920,
+            default=600, min_val=5, max_val=1920,
             on_slider="quillUpdateHeight(this.value)",
             on_input="quillInputHeight(this.value)",
         ))

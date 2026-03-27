@@ -56,7 +56,7 @@ class HomePage(BasePage):
     Quill's main page — two-panel layout with sidebar and preview.
     Sidebar has two mode tabs: Generate (AI prompt) and Import (URL fetch).
     """
-    PAGE_TITLE       = "Quill — AI Design Generator | Powered by Duck Framework"
+    PAGE_TITLE  = "Quill — AI Design Generator | Powered by Duck Framework"
     PAGE_DESCRIPTION = (
         "Describe any design in plain English. Quill uses AI to instantly generate "
         "a pixel-perfect HTML poster, social card, code snippet, certificate, or "
@@ -71,12 +71,12 @@ class HomePage(BasePage):
 
     # Design-type specific OG images — served at ?dt=<type>
     DESIGN_OG_IMAGES = {
-        "poster":      "images/og-poster.png",
-        "code":        "images/og-code.png",
-        "social":      "images/og-social.png",
+        "poster": "images/og-poster.png",
+        "code": "images/og-code.png",
+        "social": "images/og-social.png",
         "certificate": "images/og-certificate.png",
-        "opengraph":   "images/og-opengraph.png",
-        "custom":      "images/og-image.png",
+        "opengraph": "images/og-opengraph.png",
+        "custom": "images/og-image.png",
     }
 
     def on_create(self):
@@ -84,27 +84,16 @@ class HomePage(BasePage):
         self.build_page()
 
     def get_json_ld(self) -> dict:
-        return {
-            "@context": "https://schema.org",
-            "@type": "WebApplication",
-            "name": "Quill",
-            "url": self._page_url,
-            "description": self.PAGE_DESCRIPTION,
-            "applicationCategory": "DesignApplication",
-            "operatingSystem": "All",
-            "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
-            "author": {
-                "@type": "Organization",
-                "name": "Duck Framework",
-                "url": DUCK_HOMEPAGE,
-            },
+        base_json_ld = super().get_json_ld().copy()
+        base_json_ld.update({
             "potentialAction": {
                 "@type": "CreateAction",
                 "target": self._page_url,
                 "name": "Generate an AI Design",
             },
-        }
-
+        })
+        return base_json_ld
+        
     def build_page(self):
         """
         Assembles the two-panel layout.

@@ -13,11 +13,13 @@ from duck.html.components.script import Script
 from duck.html.components import to_component
 
 
-DUCK_HOMEPAGE = "https://duckframework.xyz"
-DONATE_URL    = f"{DUCK_HOMEPAGE}/contribute"
-SITE_NAME     = "Quill"
-SITE_AUTHOR   = "Duck Framework"
-SITE_URL      = "https://quill.duckframework.xyz"
+DUCK_HOMEPAGE = "https://duckframework.com"
+DONATE_URL = f"{DUCK_HOMEPAGE}/contribute"
+SITE_NAME = "Quill"
+SITE_AUTHOR = "Duck Framework"
+SITE_URL = "https://quill.duckframework.com"
+GITHUB_URL = "https://github.com/duckframework/quill"
+
 
 GLOBAL_STYLES = """
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
@@ -52,6 +54,8 @@ textarea::placeholder { color: rgba(255,255,255,0.2); }
     0%, 100% { opacity: 1; }
     50%       { opacity: 0.5; }
 }
+
+a { color: rgb(99, 102, 241);}
 
 button:not(:disabled):hover { filter: brightness(1.1); }
 button:disabled { opacity: 0.5; cursor: not-allowed !important; }
@@ -90,6 +94,21 @@ button:disabled { opacity: 0.5; cursor: not-allowed !important; }
         width: 100% !important;
         text-align: center !important;
     }
+}
+
+.github-cta {
+    display: inline-block;
+    padding: 10px 16px;
+    background: var(--accent, rgba(99, 102, 241));
+    color: white;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    margin-top: 20px;
+}
+
+.github-cta:hover {
+    opacity: 0.9;
 }
 """
 
@@ -145,8 +164,8 @@ class BasePage(Page):
         "Describe any design in plain English. Quill uses AI to generate "
         "a pixel-perfect HTML design you can download as a PNG instantly."
     )
-    PAGE_TYPE        = "website"
-    PAGE_IMAGE       = static("images/og-image.png")
+    PAGE_TYPE = "website"
+    PAGE_IMAGE = static("images/opengraph/og-image.png")
     PAGE_KEYWORDS    = [
         "AI design generator", "HTML design generator", "AI poster maker",
         "AI certificate generator", "AI social card generator",
@@ -158,7 +177,7 @@ class BasePage(Page):
         super().on_create()
 
         # Resolve canonical URL from request path
-        self._path     = getattr(self.request, "path", "/")
+        self._path = getattr(self.request, "path", "/")
         self._home_url = resolve("home", absolute=True)
         self._page_url = URL(self._home_url).join(self._path).to_str()
 
@@ -247,6 +266,7 @@ class BasePage(Page):
             card="summary_large_image",
             title=self.PAGE_TITLE,
             description=self.PAGE_DESCRIPTION,
+            image=self.PAGE_IMAGE,
         )
 
         # JSON-LD structured data
@@ -262,6 +282,7 @@ class BasePage(Page):
             "@type": "WebApplication",
             "name": SITE_NAME,
             "url": self._page_url,
+            "image": self.PAGE_IMAGE,
             "description": self.PAGE_DESCRIPTION,
             "applicationCategory": "DesignApplication",
             "operatingSystem": "All",

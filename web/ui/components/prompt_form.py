@@ -16,6 +16,7 @@ from duck.html.components.select import Select, Option
 from duck.html.components.textarea import TextArea
 from duck.html.components.modal import Modal
 from duck.html.components.link import Link
+from duck.html.components.icon import Icon
 from duck.html.components import to_component
 
 from duck.logging import logger
@@ -23,15 +24,14 @@ from duck.settings import SETTINGS
 
 from web.ui.components.dummy_mode_banner import DummyModeBanner
 
-
 # Quill Design Definitions
 DESIGN_TYPES = [
-    ("poster",       "🎨  Poster / Flyer"),
-    ("code",         "💻  Code Snippet"),
-    ("social",       "📱  Social Media Card"),
+    ("poster", "🎨  Poster / Flyer"),
+    ("code", "💻  Code Snippet"),
+    ("social", "📱  Social Media Card"),
     ("certificate",  "🏆  Certificate"),
-    ("custom",       "✦   Custom"),
-    ("opengraph",    "🌐  Open Graph Image"),
+    ("custom", "✦   Custom"),
+    ("opengraph", "🌐  Open Graph Image"),
 ]
 
 # One representative prompt per design type used in demo mode.
@@ -98,7 +98,7 @@ class RateLimitModal(Modal):
         """
         Build and returns the content for the modal.
         """
-        donate_url = SETTINGS.get("QUILL_DONATE_URL", "https://ko-fi.com/digreatbrian")
+        from web.ui.pages.base import DONATE_URL
         
         # Create wrap/container
         wrap = FlexContainer()
@@ -183,7 +183,7 @@ class RateLimitModal(Modal):
             },
         )
         donate_btn = Link(
-            url=donate_url,
+            url=DONATE_URL,
             text="☕  Support on Ko-fi",
             props={
                 "target": "_blank",
@@ -234,6 +234,8 @@ class PromptForm(Form):
         """
         Builds and adds header to the form
         """
+        from web.ui.pages.base import GITHUB_URL
+        
         title = Heading(
             "h1",
             text="Quill",
@@ -257,9 +259,34 @@ class PromptForm(Form):
             },
          )
         
+        # Github cta
+        github_svg = (
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">'
+            '<path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>'
+            '</svg>'
+        )
+        github_cta = Link(
+            url=GITHUB_URL,
+            text="Available on Github",
+            klass="github-cta",
+            props={
+                "rel": "noopener noreferrer",
+                "target": "_blank",
+            },
+            style={
+                "display": "flex",
+                "align-items": "center",
+                "gap": "6px",
+                "width": "fit-content",
+            },
+            children=[
+                Icon(inner_html=github_svg, style={"width": "16px", "height": "16px"}),
+            ],
+        )
+        
         # Create header and add its children
         header = FlexContainer(style={"flex-direction": "column", "gap": "4px"})
-        header.add_children([title, subtitle])
+        header.add_children([title, subtitle, github_cta])
         
         # Add header to the form
         self.add_child(header)
@@ -710,13 +737,13 @@ class PromptForm(Form):
 
 # User agents available in import mode
 USER_AGENTS = [
-    ("desktop_chrome",   "Desktop — Chrome",        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
-    ("desktop_firefox",  "Desktop — Firefox",       "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0"),
-    ("desktop_safari",   "Desktop — Safari",        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15"),
-    ("iphone",           "Mobile — iPhone Safari",  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1"),
-    ("android",          "Mobile — Android Chrome", "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.82 Mobile Safari/537.36"),
-    ("googlebot",        "Googlebot",               "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"),
-    ("custom",           "Custom…",                 ""),
+    ("desktop_chrome",   "Desktop — Chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+    ("desktop_firefox",  "Desktop — Firefox", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0"),
+    ("desktop_safari",   "Desktop — Safari", "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15"),
+    ("iphone",  "Mobile — iPhone Safari",  "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1"),
+    ("android",  "Mobile — Android Chrome", "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.82 Mobile Safari/537.36"),
+    ("googlebot", "Googlebot", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"),
+    ("custom", "Custom…", ""),
 ]
 
 # JS to show/hide the custom UA input
@@ -750,6 +777,7 @@ class ImportForm(Form):
             "gap": "20px",
             "width": "100%",
             "flex-shrink": "0",
+            "display": "flex",
         })
         self.build_header()
         self.build_url_input()
@@ -911,20 +939,43 @@ class ImportForm(Form):
         Fetches the given URL server-side using the selected user agent
         and streams the HTML into the preview panel.
         """
-        import urllib.request
-        import urllib.error
-
-        raw_url   = (form_inputs.get("import_url", "") or "").strip()
-        ua_key    = (form_inputs.get("user_agent_key", "desktop_chrome") or "desktop_chrome").strip()
+        from web.ui.pages.base import DONATE_URL
+        
+        raw_url  = (form_inputs.get("import_url", "") or "").strip()
+        ua_key = (form_inputs.get("user_agent_key", "desktop_chrome") or "desktop_chrome").strip()
         custom_ua = (form_inputs.get("custom_user_agent", "") or "").strip()
-
-        if not raw_url:
+        
+        async def show_error(error_heading: str, description: str):
+            """
+            Execute JS code to preview the error.
+            """
             await ws.execute_js(
-                "quillShowImportStatus('error', '&#9888; Please enter a URL to fetch.');",
+                f"quillShowImportStatus(`error`, `&#9888; {description}.`);"
+                f"quillShowError(`{error_heading}`, `{description}.`);"
+                f"document.getElementById('quill-import-btn').disabled = false;",
                 wait_for_result=False,
             )
+            
+        # NOTE: THIS FEATURE IS NOT SUPPORTED YET
+        # This feature is causing some errors, it needs more time for implementation
+        
+        # Errors include:
+        #     Blocked requests when loading external scripts from the fetched page
+        #     External URLs (scripts/stylesheets) in fetched page are being treated as relative URLs and are being directed towards our server.
+        
+        # Just show an error that the feature is not implemented.
+        await show_error(
+            "Coming Soon",
+            f"This feature is not supported yet. "
+            f"For the time being, please <a href='{DONATE_URL}' target='_blank' rel='noreferrer noopener'>donate</a> so that we can fully support this feature."
+        )
+        return
+        
+        # Start processing here (when feature is fully supported)
+        if not raw_url:
+            await show_error("Fetch Failed", "Please enter a URL to fetch.")
             return
-
+            
         if not raw_url.startswith(("http://", "https://")):
             raw_url = "https://" + raw_url
 
@@ -936,7 +987,7 @@ class ImportForm(Form):
                 (ua for key, _, ua in USER_AGENTS if key == ua_key),
                 USER_AGENTS[0][2],
             )
-
+            
         # Show spinner and disable button
         await ws.execute_js(
             f"quillStartStream('{ua_key if ua_key != 'custom' else 'ua_custom'}');"
@@ -946,74 +997,20 @@ class ImportForm(Form):
         )
 
         try:
-            req = urllib.request.Request(
-                raw_url,
-                headers={
-                    "User-Agent": user_agent,
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                    "Accept-Language": "en-US,en;q=0.5",
-                    "Accept-Encoding": "identity",
-                },
-            )
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                # Cap at 1MB to avoid huge pages
-                html_bytes = resp.read(1024 * 1024)
-                charset = "utf-8"
-                ct = resp.headers.get("Content-Type", "")
-                if "charset=" in ct:
-                    charset = ct.split("charset=")[-1].split(";")[0].strip()
-                html = html_bytes.decode(charset, errors="replace")
-
-        except urllib.error.HTTPError as e:
-            await ws.execute_js(
-                f"quillShowImportStatus('error', '&#9888; HTTP {e.code}: {e.reason}. The site may block external requests.');"
-                "quillShowError('Fetch Failed', 'The server returned an error. The site may block external fetches.');"
-                "document.getElementById('quill-import-btn').disabled = false;",
-                wait_for_result=False,
-            )
-            return
-
-        except urllib.error.URLError as e:
-            await ws.execute_js(
-                f"quillShowImportStatus('error', '&#9888; Could not reach that URL. Check the address and try again.');"
-                "quillShowError('Fetch Failed', 'Could not reach that URL. Check the address and try again.');"
-                "document.getElementById('quill-import-btn').disabled = false;",
-                wait_for_result=False,
-            )
-            return
-
+            # Make a request to the provided URL.
+            # Use Async API here for request making
+            # Cap at 1MB to avoid huge pages
+            headers={
+                "User-Agent": user_agent,
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Accept-Encoding": "identity",
+            }
+            
         except Exception:
-            await ws.execute_js(
-                "quillShowImportStatus('error', '&#9888; Fetch failed. The site may not allow external access.');"
-                "quillShowError('Fetch Failed', 'Something went wrong. The site may block external fetches.');"
-                "document.getElementById('quill-import-btn').disabled = false;",
-                wait_for_result=False,
-            )
+            await show_error("Fetch Failed", "'Something went wrong. The site may block external fetches.")
             return
-
-        # Stream HTML into preview in chunks
-        chunk_size = 8192
-        html_buffer = ""
-        for i in range(0, len(html), chunk_size):
-            html_buffer += html[i:i + chunk_size]
-            safe = (
-                html_buffer
-                .replace("\\", "\\\\")
-                .replace("`", "\\`")
-                .replace("$", "\\$")
-            )
-            await ws.execute_js(f"quillSetPreview(`{safe}`);", wait_for_result=False)
-
-        # Finalise
-        safe_final = (
-            html_buffer
-            .replace("\\", "\\\\")
-            .replace("`", "\\`")
-            .replace("$", "\\$")
-        )
-        await ws.execute_js(f"quillFinalise(`{safe_final}`);")
-        await ws.execute_js(
-            "quillShowImportStatus('success', '&#10003; Page fetched successfully. Resize and download below.');"
-            "document.getElementById('quill-import-btn').disabled = false;",
-            wait_for_result=False,
-        )
+            
+        # Stream HTML into preview in chunks (if necessary, same concept like what's being done in PromptForm.handle_generate may apply here')
+        # Or just preview the whole page at once to avoid external URLs being treated as relative URLs
+        
