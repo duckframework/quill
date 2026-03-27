@@ -315,6 +315,18 @@ class RateLimitError(Exception):
         super().__init__(f"Rate limit reached on {provider}")
 
 
+class InsufficientCreditsError(Exception):
+    """
+    Raised when a provider returns an insufficient credits response.
+
+    Attributes:
+        provider: Name of the provider e.g. "Gemini".
+    """
+    def __init__(self, provider: str):
+        self.provider = provider
+        super().__init__(f"Insufficient AI credits on {provider}")
+
+
 class MissingApiKeyError(Exception):
     """
     Raised when the required API key for a provider is not available.
@@ -344,6 +356,16 @@ def format_reset_time(seconds: int | None) -> str | None:
         return f"{seconds // 60} minutes"
     
     return f"{seconds // 3600} hours"
+
+
+def is_insufficient_credits(msg: str) -> bool:
+    """
+    Checks a message indicates an insufficient credits message.
+    """
+    msg = msg.lower()
+    return any(keyword in msg for keyword in [
+        "credit", "balance", "insufficient", "billing", "quota exceeded"
+    ])
 
 
 async def stream_dummy(design_type: str, prompt: str) -> AsyncGenerator[str, None]:
@@ -394,6 +416,11 @@ async def stream_anthropic(model: str, system: str, prompt: str) -> AsyncGenerat
             async for text in stream.text_stream:
                 yield text
 
+    except anthropic.BadRequestError as e:
+        if is_insufficient_credits(str(e)):
+            raise InsufficientCreditsError(provider="Claude (Anthropic)") from e
+        raise
+       
     except anthropic.RateLimitError as e:
         raise RateLimitError(
             provider="Claude (Anthropic)",
@@ -436,11 +463,15 @@ async def stream_gemini(model: str, system: str, prompt: str) -> AsyncGenerator[
 
     except Exception as e:
         msg = str(e).lower()
-
+        
+        # Detect insufficient credits error
+        if is_insufficient_credits(str(e)):
+            raise InsufficientCreditsError(provider="Gemini")
+        
         # Detect quota / rate limit errors
         if "quota" in msg or "429" in msg or "rate" in msg:
-            now_utc    = datetime.datetime.utcnow()
-            midnight   = (now_utc + datetime.timedelta(days=1)).replace(
+            now_utc = datetime.datetime.utcnow()
+            midnight = (now_utc + datetime.timedelta(days=1)).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
             
@@ -465,8 +496,8 @@ async def stream_groq(model: str, system: str, prompt: str) -> AsyncGenerator[st
         system: The system prompt.
         prompt: The user prompt.
     """
-    from groq import AsyncGroq, RateLimitError as GroqRateLimit
-
+    import groq
+    
     # Check API key
     key = SETTINGS.get("GROQ_API_KEY", "")
     
@@ -474,7 +505,7 @@ async def stream_groq(model: str, system: str, prompt: str) -> AsyncGenerator[st
         raise MissingApiKeyError("Groq")
 
     # Initialize the client.
-    client = AsyncGroq(api_key=key)
+    client = groq.AsyncGroq(api_key=key)
 
     try:
         stream = await client.chat.completions.create(
@@ -492,7 +523,15 @@ async def stream_groq(model: str, system: str, prompt: str) -> AsyncGenerator[st
             if delta:
                 yield delta
 
-    except GroqRateLimit as e:
+    except groq.BadRequestError as e:
+        # Select model label
+        model_label = "Llama 3" if "llama" in model.lower() else "Mixtral"
+        
+        if is_insufficient_credits(str(e)):
+            raise InsufficientCreditsError(provider=f"{modal_label} (Groq)") from e
+        raise
+       
+    except groq.RateLimit as e:
         retry_after = None
         reset_str   = None
 

@@ -94,11 +94,41 @@ class RateLimitModal(Modal):
         self.modal_content.style.update({"max-width": "360px"})
         self.style["display"] = "flex"
 
-    def build_content(self, provider: str, reset_time: str | None) -> FlexContainer:
+    def show_insufficient_credits(self, provider: str):
+        """
+        This populates the rate limit modal with insufficient credits error message. 
+        Every time this is called, it first resets the content of the modal.
+        """
+        content = self.build_content(provider, insufficient_credits=True)
+        self.set_content(content)
+        self.modal_content.style.update({"max-width": "360px"})
+        self.style["display"] = "flex"
+
+    def build_content(
+        self,
+        provider: str,
+        reset_time: str | None = None,
+        insufficient_credits: bool = False,
+    ) -> FlexContainer:
         """
         Build and returns the content for the modal.
+        
+        Args:
+            provider (str): The AI provider e.g., Anthropic, Groq, Gemini, etc
+            reset_time (str | None): The reset tims for this provider.
+            insufficient_credits (bool): Whether to show content related to insufficient AI credits.
         """
         from web.ui.pages.base import DONATE_URL
+        
+        heading = "Rate Limit Reached"
+        provider_message = f"<strong>{provider}</strong> has reached its request limit."
+        
+        if insufficient_credits:
+            heading = "Platform Credits Exhausted"
+            provider_message = f"<strong>{provider}</strong> credits has been used up. We will refill if you choose to give to us. "
+        
+        # Update the model header text
+        self.title_heading.text = heading
         
         # Create wrap/container
         wrap = FlexContainer()
@@ -113,7 +143,7 @@ class RateLimitModal(Modal):
         icon.style["font-size"] = "1.4rem"
         
         # Configure the title heading
-        title = Heading("h3", text="Rate Limit Reached")
+        title = Heading("h3", text=heading)
         title.style.update({"font-size": "1.05rem", "font-weight": "700", "color": "#fff", "margin": "0"})
         
         # Add title row children
@@ -121,7 +151,7 @@ class RateLimitModal(Modal):
         
         # Configure the provider message
         provider_msg = Paragraph(
-            inner_html=f"<strong>{provider}</strong> has reached its request limit.",
+            inner_html=provider_message,
             style={
                 "font-size": "0.85rem",
                 "color": "rgba(255,255,255,0.65)",
@@ -173,7 +203,7 @@ class RateLimitModal(Modal):
         donate_msg = Paragraph(
             inner_html=(
                 "Quill is free and costs real money to run. "
-                "If it's useful to you, consider buying me a coffee ☕"
+                "If it's useful to you, consider buying us a coffee ☕"
             ),
             style={
                 "font-size": "0.8rem",
@@ -184,7 +214,7 @@ class RateLimitModal(Modal):
         )
         donate_btn = Link(
             url=DONATE_URL,
-            text="☕  Support on Ko-fi",
+            text="☕  Support Duck Framework",
             props={
                 "target": "_blank",
                 "rel": "noopener noreferrer",
@@ -489,7 +519,6 @@ class PromptForm(Form):
             open_on_ready=False,
             style={
                 "align-items": "center",
-                "margin-top": "10px",
                 "padding": "10px",
             },
         )
@@ -581,7 +610,12 @@ class PromptForm(Form):
         matching the selected design type.
         In normal mode: uses the actual prompt and calls the real AI provider.
         """
-        from web.ai_client import stream_design, RateLimitError, MissingApiKeyError
+        from web.ai_client import (
+            stream_design,
+            RateLimitError,
+            MissingApiKeyError,
+            InsufficientCreditsError,
+       )
 
         design_type = (form_inputs.get("design_type", "custom") or "custom").strip()
         model_id = (form_inputs.get("model_id", "") or "").strip()
@@ -681,6 +715,21 @@ class PromptForm(Form):
             
             # Also show the detailed rate limit modal
             self.rate_limit_modal.show_rate_limit(e.provider, e.reset_time)
+            return ForceUpdate(self.rate_limit_modal, ["style"])
+            
+        except InsufficientCreditsError as e:
+            error = f"{e.provider} credits exhausted. Try a different model or enable Demo Mode"
+            error_heading = 'AI Credits exhausted'
+            error_description = (
+                f"'{e.provider} credits have been used up. "
+                + " Try a different model or enable Demo Mode."
+            )
+            
+            # Preview the error
+            await show_error(error_heading, error, error_description)
+            
+            # Also show the detailed rate limit modal
+            self.rate_limit_modal.show_insufficient_credits(e.provider)
             return ForceUpdate(self.rate_limit_modal, ["style"])
 
         except MissingApiKeyError as e:

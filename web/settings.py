@@ -418,22 +418,20 @@ SYSTEMD_SERVICE_DIR: str = "/etc/systemd/system/"
 # API keys — set as environment variables or replace the defaults below.
 # You only need keys for the providers you intend to use.
 ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
-GEMINI_API_KEY: str    = os.environ.get("GEMINI_API_KEY", "")
-GROQ_API_KEY: str      = os.environ.get("GROQ_API_KEY", "")
+GEMINI_API_KEY: str = os.environ.get("GEMINI_API_KEY", "")
+GROQ_API_KEY: str = os.environ.get("GROQ_API_KEY", "")
 
 # Max tokens generated per design (applies to all providers)
 QUILL_MAX_TOKENS: int = 4096
 
-# Donation link shown in the rate limit modal
-QUILL_DONATE_URL: str = "https://ko-fi.com/digreatbrian"
 
 # Available models shown in the UI selector
 # Format: (model_id, display_label, provider)
 QUILL_MODELS: list = [
     ("claude-sonnet-4-20250514", "✦ Claude Sonnet (default)", "anthropic"),
-    ("gemini-1.5-flash",         "⚡ Gemini Flash — 1500/day free", "gemini"),
-    ("llama3-70b-8192",          "🦙 Llama 3 70B via Groq",  "groq"),
-    ("mixtral-8x7b-32768",       "🌀 Mixtral via Groq",       "groq"),
+    ("gemini-1.5-flash", "⚡ Gemini Flash — 1500/day free", "gemini"),
+    ("llama3-70b-8192", "🦙 Llama 3 70B via Groq",  "groq"),
+    ("mixtral-8x7b-32768", "🌀 Mixtral via Groq", "groq"),
 ]
 
 # Dummy mode — set to True to test without any API keys.
