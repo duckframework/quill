@@ -1,6 +1,6 @@
 # ✦ Quill — AI Design Generator
 
-> Describe any design in plain English. Quill uses Claude AI to generate
+> Describe any design in plain English. Quill uses different AI models to generate
 > a pixel-perfect HTML design you can download as a PNG instantly.
 > Built with Duck Framework — pure Python, no JavaScript frameworks.
 
