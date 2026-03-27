@@ -1,5 +1,5 @@
 """
-ai_client.py — Multi-provider async AI client for Quill.
+Multi-provider async AI client for Quill.
 
 Supports Anthropic, Google Gemini, Groq, and a built-in dummy
 provider for testing without any API key.
@@ -7,6 +7,7 @@ provider for testing without any API key.
 import re
 import asyncio
 import datetime
+
 from typing import AsyncGenerator
 
 from duck.settings import SETTINGS
@@ -26,12 +27,12 @@ CRITICAL RULES — follow every one without exception:
 
 # System prompt per design type
 SYSTEM_PROMPTS = {
-    "poster":      f"You are an expert graphic designer creating stunning posters and flyers as HTML. Use bold typography, rich gradients, dramatic layouts and strong visual hierarchy. Think concert posters, event flyers — vivid, eye-catching, professional.\n{BASE_RULES}",
-    "code":        f"You are a developer advocate creating beautiful code snippet showcase cards as HTML. Use dark themes, accurate syntax highlighting with span-based coloring, clean monospace fonts, subtle glow effects, a filename tab, line numbers, and a language badge.\n{BASE_RULES}",
-    "social":      f"You are a social media designer creating scroll-stopping cards as HTML. Bold, modern, optimised for sharing. Think Twitter/LinkedIn cards, quote graphics, announcement posts.\n{BASE_RULES}",
+    "poster": f"You are an expert graphic designer creating stunning posters and flyers as HTML. Use bold typography, rich gradients, dramatic layouts and strong visual hierarchy. Think concert posters, event flyers — vivid, eye-catching, professional.\n{BASE_RULES}",
+    "code": f"You are a developer advocate creating beautiful code snippet showcase cards as HTML. Use dark themes, accurate syntax highlighting with span-based coloring, clean monospace fonts, subtle glow effects, a filename tab, line numbers, and a language badge.\n{BASE_RULES}",
+    "social": f"You are a social media designer creating scroll-stopping cards as HTML. Bold, modern, optimised for sharing. Think Twitter/LinkedIn cards, quote graphics, announcement posts.\n{BASE_RULES}",
     "certificate": f"You are a formal document designer creating elegant certificates as HTML. Use classic serif typography, decorative borders, gold/cream/navy palettes, official seals, and a sense of prestige.\n{BASE_RULES}",
-    "custom":      f"You are a world-class creative designer. Interpret the prompt freely and produce the most visually impressive HTML design possible.\n{BASE_RULES}",
-    "opengraph":   f"You are an expert Open Graph image designer. Create stunning 1200x630px HTML cards for social media sharing. The design must be exactly 1200px wide and 630px tall, with no scrollbars. Use bold typography, strong visual hierarchy, a compelling headline, a short tagline, a domain/brand name, and an accent colour that complements the content. Avoid clutter — every element must breathe. Think Twitter cards, LinkedIn posts, Discord embeds.\n{BASE_RULES}",
+    "custom": f"You are a world-class creative designer. Interpret the prompt freely and produce the most visually impressive HTML design possible.\n{BASE_RULES}",
+    "opengraph": f"You are an expert Open Graph image designer. Create stunning 1200x630px HTML cards for social media sharing. The design must be exactly 1200px wide and 630px tall, with no scrollbars. Use bold typography, strong visual hierarchy, a compelling headline, a short tagline, a domain/brand name, and an accent colour that complements the content. Avoid clutter — every element must breathe. Think Twitter cards, LinkedIn posts, Discord embeds.\n{BASE_RULES}",
 }
 
 # Pre-built demo designs streamed chunk by chunk when dummy mode is on
@@ -335,10 +336,13 @@ def format_reset_time(seconds: int | None) -> str | None:
     """
     if seconds is None:
         return None
+    
     if seconds < 60:
         return f"{seconds} seconds"
+    
     if seconds < 3600:
         return f"{seconds // 60} minutes"
+    
     return f"{seconds // 3600} hours"
 
 
@@ -349,12 +353,13 @@ async def stream_dummy(design_type: str, prompt: str) -> AsyncGenerator[str, Non
 
     Args:
         design_type: One of: poster, code, social, certificate, custom.
-        prompt:      Ignored in dummy mode, present for signature compatibility.
+        prompt: Ignored in dummy mode, present for signature compatibility.
     """
     html = DUMMY_DESIGNS.get(design_type, DUMMY_DESIGNS["custom"])
 
     # Stream in 80-char chunks with a small delay to simulate real streaming
     chunk_size = 80
+    
     for i in range(0, len(html), chunk_size):
         yield html[i:i + chunk_size]
         await asyncio.sleep(0.02)
@@ -365,7 +370,7 @@ async def stream_anthropic(model: str, system: str, prompt: str) -> AsyncGenerat
     Streams from Anthropic Claude using the async client.
 
     Args:
-        model:  The Anthropic model ID string.
+        model: The Anthropic model ID string.
         system: The system prompt.
         prompt: The user prompt.
     """
@@ -373,6 +378,7 @@ async def stream_anthropic(model: str, system: str, prompt: str) -> AsyncGenerat
 
     # Check API key
     key = SETTINGS.get("ANTHROPIC_API_KEY", "")
+    
     if not key:
         raise MissingApiKeyError("Anthropic")
 
@@ -401,7 +407,7 @@ async def stream_gemini(model: str, system: str, prompt: str) -> AsyncGenerator[
     Streams from Google Gemini using the async generate API.
 
     Args:
-        model:  The Gemini model ID string.
+        model: The Gemini model ID string.
         system: The system prompt.
         prompt: The user prompt.
     """
@@ -409,6 +415,7 @@ async def stream_gemini(model: str, system: str, prompt: str) -> AsyncGenerator[
 
     # Check API key
     key = SETTINGS.get("GEMINI_API_KEY", "")
+    
     if not key:
         raise MissingApiKeyError("Gemini")
 
@@ -422,6 +429,7 @@ async def stream_gemini(model: str, system: str, prompt: str) -> AsyncGenerator[
             stream=True,
             generation_config={"max_output_tokens": SETTINGS.get("QUILL_MAX_TOKENS", 4096)},
         )
+        
         async for chunk in response:
             if chunk.text:
                 yield chunk.text
@@ -435,7 +443,11 @@ async def stream_gemini(model: str, system: str, prompt: str) -> AsyncGenerator[
             midnight   = (now_utc + datetime.timedelta(days=1)).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
+            
+            # Get delta secs
             delta_secs = int((midnight - now_utc).total_seconds())
+            
+            # Raise rate limit error
             raise RateLimitError(
                 provider="Gemini Flash (Google)",
                 reset_time=f"midnight UTC — in about {format_reset_time(delta_secs)}",
@@ -457,9 +469,11 @@ async def stream_groq(model: str, system: str, prompt: str) -> AsyncGenerator[st
 
     # Check API key
     key = SETTINGS.get("GROQ_API_KEY", "")
+    
     if not key:
         raise MissingApiKeyError("Groq")
 
+    # Initialize the client.
     client = AsyncGroq(api_key=key)
 
     try:
@@ -472,6 +486,7 @@ async def stream_groq(model: str, system: str, prompt: str) -> AsyncGenerator[st
             ],
             stream=True,
         )
+        
         async for chunk in stream:
             delta = chunk.choices[0].delta.content
             if delta:
@@ -482,15 +497,18 @@ async def stream_groq(model: str, system: str, prompt: str) -> AsyncGenerator[st
         reset_str   = None
 
         # Parse retry time from the error message if available
-        raw   = str(e)
+        raw = str(e)
         match = re.search(r"try again in (\d+\.?\d*)(s|m)", raw, re.IGNORECASE)
+        
         if match:
-            value       = float(match.group(1))
-            unit        = match.group(2).lower()
+            value = float(match.group(1))
+            unit = match.group(2).lower()
             retry_after = int(value * 60 if unit == "m" else value)
-            reset_str   = format_reset_time(retry_after)
+            reset_str = format_reset_time(retry_after)
 
+        # Select model label
         model_label = "Llama 3" if "llama" in model.lower() else "Mixtral"
+        
         raise RateLimitError(
             provider=f"{model_label} (Groq)",
             reset_time=reset_str,
@@ -527,16 +545,16 @@ async def stream_design(
     provider if force_dummy is True or QUILL_DUMMY_MODE is set in settings.
 
     Args:
-        prompt:      The user's design description.
+        prompt: The user's design description.
         design_type: One of: poster, code, social, certificate, custom.
-        model_id:    The model ID string from QUILL_MODELS.
+        model_id: The model ID string from QUILL_MODELS.
         force_dummy: If True, use dummy mode regardless of settings.
 
     Yields:
         str: Partial HTML text chunks as they arrive.
 
     Raises:
-        RateLimitError:     When the provider's rate limit is hit.
+        RateLimitError: When the provider's rate limit is hit.
         MissingApiKeyError: When the required API key is not configured.
     """
     # Use dummy mode if forced from the UI or set in settings
@@ -552,11 +570,13 @@ async def stream_design(
     # Map provider names to their streaming functions
     providers = {
         "anthropic": stream_anthropic,
-        "gemini":    stream_gemini,
-        "groq":      stream_groq,
+        "gemini": stream_gemini,
+        "groq": stream_groq,
     }
-
+    
+    # Get provider function
     fn = providers.get(provider)
+    
     if fn is None:
         raise ValueError(f"Unknown provider: {provider}")
 

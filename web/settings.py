@@ -140,7 +140,7 @@ ASGI: str = "duck.http.core.asgi.ASGI"
 # Determines whether to use asynchronous request handling.
 # If set to False, the framework defaults to multithreaded request handling.
 # Example: ASYNC_HANDLING=True enables async handling; False uses threads.
-ASYNC_HANDLING: bool = False
+ASYNC_HANDLING: bool = True
 
 
 # Template Lively HTML Components

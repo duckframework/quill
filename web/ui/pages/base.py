@@ -216,7 +216,6 @@ class BasePage(Page):
             "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js",
             "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js",
             "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js",
-            "https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/markup-templating/prism-markup-templating.min.js",
         ]:
             s = to_component("", "script", no_closing_tag=False)
             s.props["src"] = src

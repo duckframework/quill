@@ -1,0 +1,1 @@
+python -m duck collectstatic -y && python web/main.py

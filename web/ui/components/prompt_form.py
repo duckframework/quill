@@ -584,9 +584,27 @@ class PromptForm(Form):
         from web.ai_client import stream_design, RateLimitError, MissingApiKeyError
 
         design_type = (form_inputs.get("design_type", "custom") or "custom").strip()
-        model_id    = (form_inputs.get("model_id", "") or "").strip()
+        model_id = (form_inputs.get("model_id", "") or "").strip()
         use_dummy   = self.dummy_banner.is_dummy_enabled()
-
+        
+        async def show_error(error_heading, error: str, error_description: str):
+            """
+            Shows an error to the client using JS.
+            """
+            await ws.execute_js(
+                "document.getElementById('quill-generating-badge').style.display='none';"
+                "var s=document.getElementById('quill-spinner-overlay'); if(s) s.style.display='none';",
+                wait_for_result=False,
+            )
+            await ws.execute_js(
+                f"quillSetStatusError('{error}');",
+                wait_for_result=False,
+            )
+            await ws.execute_js(
+                f"quillShowError('{error_heading}', '{error_description}');",
+                wait_for_result=False,
+            )
+            
         if use_dummy:
             # In demo mode the prompt is determined by design type
             prompt = DEMO_PROMPTS.get(design_type, DEMO_PROMPTS["custom"])
@@ -649,69 +667,45 @@ class PromptForm(Form):
             await ws.execute_js(f"quillFinalise(`{safe_final}`);")
 
         except RateLimitError as e:
-            error = "Rate limit reached"
-
-            await ws.execute_js(
-                "document.getElementById('quill-generating-badge').style.display='none';"
-                "var s=document.getElementById('quill-spinner-overlay'); if(s) s.style.display='none';",
-                wait_for_result=False,
-            )
             reset_note = f" Resets in {e.reset_time}." if e.reset_time else ""
-            await ws.execute_js(
-                f"quillSetStatusError('{e.provider} rate limit reached.{reset_note} Try a different model or enable Demo Mode.');",
-                wait_for_result=False,
-            )
-            await ws.execute_js(
-                f"quillShowError('Rate Limit Reached',"
+            error = f"{e.provider} rate limit reached.{reset_note} Try a different model or enable Demo Mode"
+            error_heading = 'Rate Limit Reached'
+            error_description = (
                 f"'{e.provider} has reached its request limit."
-                + (f" Resets in {e.reset_time}." if e.reset_time else "")
-                + " Try a different model or enable Demo Mode.');",
-                wait_for_result=False,
+                + reset_note
+                + " Try a different model or enable Demo Mode."
             )
-
+            
+            # Preview the error
+            await show_error(error_heading, error, error_description)
+            
             # Also show the detailed rate limit modal
             self.rate_limit_modal.show_rate_limit(e.provider, e.reset_time)
             return ForceUpdate(self.rate_limit_modal, ["style"])
 
         except MissingApiKeyError as e:
-            error = "Missing API key"
-
-            await ws.execute_js(
-                "document.getElementById('quill-generating-badge').style.display='none';"
-                "var s=document.getElementById('quill-spinner-overlay'); if(s) s.style.display='none';",
-                wait_for_result=False,
+            reason = "API Key is not set in settings. " if SETTINGS['DEBUG'] else ""
+            error = f'{e.provider} is unavailable. {reason}Select a different model or enable Demo Mode.'
+            error_heading = "Model Unavailable" if not SETTINGS['DEBUG'] else "Missing API Key"
+            error_description = (
+                f"Sorry, the {e.provider} model is currently unavailable. "
+                f"Please select a different model or enable Demo Mode to try without one."
             )
-            await ws.execute_js(
-                f"quillSetStatusError('{e.provider} is unavailable. Select a different model or enable Demo Mode.');",
-                wait_for_result=False,
-            )
-            await ws.execute_js(
-                f"quillShowError('Model Unavailable',"
-                f"'Sorry, the {e.provider} model is currently unavailable. "
-                f"Please select a different model or enable Demo Mode to try without one.');",
-                wait_for_result=False,
-            )
+            
+            # Preview the error
+            await show_error(error_heading, error, error_description)
 
         except Exception as e:
             error = "Something went wrong, please try again"
-
+            error_heading = "Something went wrong"
+            error_description = "An unexpected error occurred. Please try again"
+            
             if SETTINGS["DEBUG"]:
                 # Log the exception in debug mode
                 logger.log_exception(e)
-
-            await ws.execute_js(
-                "document.getElementById('quill-generating-badge').style.display='none';"
-                "var s=document.getElementById('quill-spinner-overlay'); if(s) s.style.display='none';",
-                wait_for_result=False,
-            )
-            await ws.execute_js(
-                "quillSetStatusError('Something went wrong. Please try again.');",
-                wait_for_result=False,
-            )
-            await ws.execute_js(
-                "quillShowError('Something went wrong', 'An unexpected error occurred. Please try again.');",
-                wait_for_result=False,
-            )
+            
+            # Preview the error
+            await show_error(error_heading, error, error_description)
             
         finally:
             # Re-enable button and restore correct label for current mode

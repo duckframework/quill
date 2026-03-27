@@ -4,6 +4,9 @@
 > a pixel-perfect HTML design you can download as a PNG instantly.
 > Built with Duck Framework — pure Python, no JavaScript frameworks.
 
+
+**[▶ Try the Live Demo](https://quill.duckframework.com/)**
+
 ---
 
 ## What is this?
@@ -36,6 +39,7 @@ Or use an environment variable:
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
 export GEMINI_API_KEY="..."
+export GROK_API_KEY="..."
 ```
 
 ### Step 3 — Run
@@ -43,6 +47,7 @@ export GEMINI_API_KEY="..."
 ```bash
 python web/main.py
 ```
+
 Open `http://localhost:8000`
 
 ---
@@ -51,7 +56,7 @@ Open `http://localhost:8000`
 
 | File | What it does |
 |---|---|
-| `web/claude_client.py` | Anthropic streaming API wrapper |
+| `web/ai_client.py` | AI client streaming API wrapper |
 | `web/ui/components/prompt_form.py` | Prompt input + generate button |
 | `web/ui/components/preview_panel.py` | iframe preview + resize + download |
 | `web/ui/pages/home.py` | Full page layout |
@@ -59,4 +64,4 @@ Open `http://localhost:8000`
 
 ---
 
-*Part of the Duck Framework showcase — [duckframework.xyz](https://duckframework.xyz)*
+*Part of the Duck Framework showcase — [duckframework.com](https://duckframework.com)*
