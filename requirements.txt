@@ -1,4 +1,4 @@
-duckframework
+git+https://github.com/duckframework/duck.git
 anthropic
 google-generativeai
 groq
