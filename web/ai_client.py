@@ -23,6 +23,8 @@ CRITICAL RULES — follow every one without exception:
 - The design must look stunning. Treat this as professional creative work.
 - Every element must be visible and readable against its background.
 - The root element should fill 100% of the viewport with no scrollbars.
+- Make the designs look modern and attractive but don't do too much.
+- Mix right colors in designs
 """.strip()
 
 # System prompt per design type

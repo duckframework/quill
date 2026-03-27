@@ -772,7 +772,7 @@ class PreviewPanel(FlexContainer):
         self.iframe.id = "quill-preview-frame"
         self.iframe.props.update({
             "id": "quill-preview-frame",
-            "sandbox": "allow-same-origin",
+            "sandbox": "allow-same-origin allow-scripts",
             "style": (
                 "width:800px;height:600px;border:none;"
                 "background:#fff;display:block;"
