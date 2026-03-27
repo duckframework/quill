@@ -190,10 +190,18 @@ function quillDownload() {
             scrollY: 0,
         }).then(function(canvas) {
             // Download the PNG
-            var link      = document.createElement('a');
-            link.download = 'quill-design.png';
-            link.href     = canvas.toDataURL('image/png');
-            link.click();
+           
+    // Resize down to exact design dimensions
+    var out = document.createElement('canvas');
+    out.width  = designW;
+    out.height = designH;
+    out.getContext('2d').drawImage(canvas, 0, 0, designW, designH);
+
+    var link      = document.createElement('a');
+    link.download = 'quill-design.png';
+    link.href     = out.toDataURL('image/png');
+    link.click();
+            
 
             // Restore iframe to its previous display size
             frame.style.width    = prevWidth;
