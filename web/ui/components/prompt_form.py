@@ -619,7 +619,7 @@ class PromptForm(Form):
 
         design_type = (form_inputs.get("design_type", "custom") or "custom").strip()
         model_id = (form_inputs.get("model_id", "") or "").strip()
-        use_dummy   = self.dummy_banner.is_dummy_enabled()
+        use_dummy = self.dummy_banner.is_dummy_enabled()
         
         async def show_error(error_heading, error: str, error_description: str):
             """
@@ -639,6 +639,40 @@ class PromptForm(Form):
                 wait_for_result=False,
             )
             
+        def extract_full_html_document(content: str) -> str:
+            """
+            Extract a complete HTML document if present, preserving <head> and <body>.
+        
+            Removes any text before <!DOCTYPE>/<html> and after </html>.
+        
+            Args:
+                content: Raw model output.
+        
+            Returns:
+                Clean HTML document or original content if no document detected.
+            """
+            lower = content.lower()
+        
+            # Find start of document
+            start = -1
+            
+            if "<!doctype" in lower:
+                start = lower.find("<!doctype")
+            elif "<html" in lower:
+                start = lower.find("<html")
+        
+            if start == -1:
+                return content.strip()
+        
+            # Find end of document
+            end = lower.rfind("</html>")
+            if end != -1:
+                end += len("</html>")
+                return content[start:end].strip()
+        
+            # Fallback: no closing tag
+            return content[start:].strip()
+
         if use_dummy:
             # In demo mode the prompt is determined by design type
             prompt = DEMO_PROMPTS.get(design_type, DEMO_PROMPTS["custom"])
@@ -691,6 +725,9 @@ class PromptForm(Form):
                     wait_for_result=False,
                 )
 
+            # If AI was dumb enough to share its thougths, strip that here.
+            html_buffer = extract_full_html_document(html_buffer)
+            
             # Finalise the generated HTML content.
             safe_final = (
                 html_buffer
@@ -698,8 +735,8 @@ class PromptForm(Form):
                 .replace("`", "\\`")
                 .replace("$", "\\$")
             )
-            await ws.execute_js(f"quillFinalise(`{safe_final}`);")
-
+            await ws.execute_js(f"quillFinalise(`{safe_final}`);", wait_for_result=True)
+            
         except RateLimitError as e:
             reset_note = f" Resets in {e.reset_time}." if e.reset_time else ""
             error = f"{e.provider} rate limit reached.{reset_note} Try a different model or enable Demo Mode"
@@ -775,6 +812,9 @@ class PromptForm(Form):
                 await ws.execute_js("quillClearStatus();", wait_for_result=False)
 
             # Return ForceUpdate to sync current changes on submit button to the client.
+            if not html_buffer:
+                # Maybe we got some error
+                await ws.execute_js("quillSwitchTab('preview');")
             return ForceUpdate(self.submit_btn, ["all"])
 
 

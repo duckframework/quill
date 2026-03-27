@@ -430,8 +430,8 @@ QUILL_MAX_TOKENS: int = 4096
 QUILL_MODELS: list = [
     ("claude-sonnet-4-20250514", "✦ Claude Sonnet (default)", "anthropic"),
     ("gemini-1.5-flash", "⚡ Gemini Flash — 1500/day free", "gemini"),
-    ("llama3-70b-8192", "🦙 Llama 3 70B via Groq",  "groq"),
-    ("mixtral-8x7b-32768", "🌀 Mixtral via Groq", "groq"),
+    ("llama-3.3-70b-versatile", "🦙 Llama 3.3 70B via Groq", "groq"),
+    ("qwen/qwen3-32b", "🧠 Qwen3 32B via Groq", "groq"),
 ]
 
 # Dummy mode — set to True to test without any API keys.

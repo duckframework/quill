@@ -52,11 +52,22 @@ function quillSwitchTab(tab) {
 function quillSetPreview(html) {
     html = quillSanitizeHtml(html);
     var frame = document.getElementById('quill-preview-frame');
+    var codeEditor = document.getElementById('quill-code-editor');
+    
     if (!frame) return;
+    
+    // Set the HTML
     frame.srcdoc = html;
-
+    
+    // Switch to code tab (if not)
+    quillSwitchTab('code');
+    
+    // Start scroll logic; scroll to visible latest content
+    codeEditor.scrollTo(0, codeEditor.scrollHeight);
+      
     // Sync code editor and highlighting
     var editor = document.getElementById('quill-code-editor');
+    
     if (editor) {
         editor.value = html;
         quillSyncHighlight();
@@ -68,6 +79,7 @@ function quillSetPreview(html) {
 
     // Reveal preview wrap — height from slider which is always up to date
     var wrap = document.getElementById('quill-preview-wrap');
+    
     if (wrap) {
         var h = document.getElementById('quill-h-slider').value;
         wrap.style.display = 'block';
@@ -132,7 +144,9 @@ function quillInputHeight(val) {
 
 function quillApplyCode() {
     var textarea = document.getElementById('quill-code-editor');
+    
     if (!textarea) return;
+    
     var html = textarea.value;
     window._quillBuffer = html;
     quillSyncHighlight();
@@ -166,15 +180,15 @@ function quillDownload() {
 
     // Temporarily set iframe to the exact design dimensions so
     // html2canvas captures the full design, not the mobile viewport
-    frame.style.width    = designW + 'px';
-    frame.style.height   = designH + 'px';
+    frame.style.width = designW + 'px';
+    frame.style.height = designH + 'px';
     frame.style.overflow = 'hidden';
     
     // Make sure we are in preview tab.
     quillSwitchTab('preview');
 
     // Inject html2canvas into the iframe and capture at full resolution
-    var doc    = frame.contentDocument || frame.contentWindow.document;
+    var doc = frame.contentDocument || frame.contentWindow.document;
     var script = doc.createElement('script');
     script.src = '""" + HTML_2_CANVAS_SCRIPT_URL + r"""';
     script.onload = function() {
@@ -398,10 +412,10 @@ function quillHideError() {
 }
 
 function quillShowHint(designType) {
-    var hint     = document.getElementById('quill-resize-hint');
+    var hint = document.getElementById('quill-resize-hint');
     var hintWrap = document.getElementById('quill-resize-hint-wrap');
     if (!hint || !hintWrap) return;
-    hint.innerText         = DESIGN_HINTS[designType] || DESIGN_HINTS['custom'];
+    hint.innerText = DESIGN_HINTS[designType] || DESIGN_HINTS['custom'];
     hintWrap.style.display = 'flex';
 }
 
@@ -413,7 +427,7 @@ function quillFinalise(html) {
     html = quillSanitizeHtml(html);
     window._quillBuffer = html;
     quillSetPreview(html);
-
+    
     // Show download button
     document.getElementById('quill-download-btn').style.display = 'inline-block';
 
@@ -453,7 +467,7 @@ function quillStartStream(designType) {
     // Hide error box from any previous error
     quillHideError();
 
-    // Switch to preview tab
+    // Switch to Code tab to show code being written.
     quillSwitchTab('preview');
 
     // Hide placeholder and previous preview, show spinner
@@ -681,6 +695,16 @@ class PreviewPanel(FlexContainer):
         """
         Builds the preview pane: outer box, placeholder, iframe, and spinner overlay.
         """
+        info_div = FlexContainer(
+            children=[
+                Paragraph(
+                    text="If the preview is not being displayed correctly. Switch to code tab and try clicking 'Apply' button again!",
+                    style={"padding": "10px", "color": "rgba(255,255,255,0.2)", "font-size": ".9rem"},
+                ),
+                    
+            ],
+        )
+        
         self.preview_pane = FlexContainer(
             id="quill-pane-preview",
             style={
@@ -748,7 +772,7 @@ class PreviewPanel(FlexContainer):
         self.iframe.id = "quill-preview-frame"
         self.iframe.props.update({
             "id": "quill-preview-frame",
-            "sandbox": "allow-scripts allow-same-origin",
+            "sandbox": "allow-same-origin",
             "style": (
                 "width:800px;height:600px;border:none;"
                 "background:#fff;display:block;"
@@ -834,7 +858,7 @@ class PreviewPanel(FlexContainer):
         ])
 
         # Spinner sits at pane level so it covers the full pane area
-        self.preview_pane.add_children([self.preview_outer, spinner_overlay])
+        self.preview_pane.add_children([info_div, self.preview_outer, spinner_overlay])
         self.add_child(self.preview_pane)
 
     # Code pane

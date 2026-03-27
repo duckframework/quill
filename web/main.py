@@ -30,6 +30,7 @@ SETTINGS['ENABLE_HTTPS']  = 0  # Set to 1 if your server handles HTTPS directly
 SETTINGS['DEBUG'] = DEBUG
 SETTINGS['EXTRA_HEADERS'] = {"cache-control": "no-cache"} if DEBUG else {}
 SETTINGS['ALLOWED_HOSTS'] = [DOMAIN, f"*.{DOMAIN}"] if not DEBUG else ["*"]
+SETTINGS['ASYNC_HANDLING'] = True
 
 
 from duck.app import App
