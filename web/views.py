@@ -3,7 +3,7 @@ Views for Quill.
 """
 from duck.settings import SETTINGS
 from duck.utils.path import joinpaths
-from duck.shortcuts import to_response, not_found404
+from duck.shortcuts import to_response, not_found404, static
 from duck.http.response import FileResponse
 
 from web.ui.pages.home import HomePage
@@ -21,10 +21,7 @@ async def favicon(request):
     """
     View for serving a favicon.
     """
-    if SETTINGS['DEBUG']:
-        favicon = joinpaths(SETTINGS['BASE_DIR'], "web/ui/static/images/favicon.ico")
-    else:
-        favicon = joinpaths(SETTINGS['STATIC_ROOT'], "images/favicon.ico")
+    favicon = static("images/favicon.ico")
     return FileResponse(favicon)
 
 
