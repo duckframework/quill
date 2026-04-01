@@ -24,7 +24,8 @@ CRITICAL RULES — follow every one without exception:
 - Every element must be visible and readable against its background.
 - The root element should fill 100% of the viewport with no scrollbars.
 - Make the designs look modern and attractive but don't do too much.
-- Mix right colors in designs
+- Mix right colors in designs.
+- I repeat, make the UI modern, slick and clean.
 """.strip()
 
 # System prompt per design type

@@ -51,6 +51,7 @@ URLPATTERNS_MODULE: str = "web.urls"
 BLUEPRINTS: list[str] = [
     "duck.etc.apps.essentials.blueprint.MediaFiles",
     "duck.etc.apps.essentials.blueprint.StaticFiles",
+    "duck.etc.apps.essentials.blueprint.Sitemap", # Access sitemap at /sitemap.xml
 ]
 
 
